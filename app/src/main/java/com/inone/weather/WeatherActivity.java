@@ -11,6 +11,7 @@ import android.graphics.Color;
 import android.os.Build;
 import android.os.Bundle;
 import android.preference.PreferenceManager;
+import android.provider.ContactsContract;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -24,10 +25,13 @@ import android.widget.Toast;
 import com.bumptech.glide.Glide;
 import com.inone.weather.gson.Forecast;
 import com.inone.weather.gson.Weather;
+import com.inone.weather.service.AutoUpdateService;
 import com.inone.weather.util.HttpUtil;
 import com.inone.weather.util.Utility;
 
 import java.io.IOException;
+import java.text.SimpleDateFormat;
+import java.util.Date;
 
 import okhttp3.Call;
 import okhttp3.Callback;
@@ -49,6 +53,8 @@ public class WeatherActivity extends AppCompatActivity {
     private TextView carWashText;   //洗车指数
     private TextView sportText;     //运动指数
 
+    private String time;
+
     /*
     * 刷新
     * */
@@ -63,6 +69,7 @@ public class WeatherActivity extends AppCompatActivity {
 
     //每日一图
     private ImageView bingPicImg;
+
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -140,7 +147,17 @@ public class WeatherActivity extends AppCompatActivity {
         swipeRefreshLayout.setOnRefreshListener(new SwipeRefreshLayout.OnRefreshListener() {
             @Override
             public void onRefresh() {
-                requestWeather(mWeatherId);
+                //简单的限制一下，不频繁刷新
+                SimpleDateFormat df = new SimpleDateFormat("HH:mm");
+                String[] nowdata =df.format(new Date()).split(":");
+                int nowTime = Integer.parseInt(nowdata[1]);
+                int lastTime = Integer.parseInt(time.split(":")[1]);
+                Log.d(TAG, "onRefresh: *********dada******************" +nowTime +"dada ++lastTime ++dadadad"+ lastTime +"*****time*****" +time);
+                if((nowTime -lastTime) >=5) {//限制五分钟请求一次可以
+                    requestWeather(mWeatherId);
+                }else {
+                    swipeRefreshLayout.setRefreshing(false); //刷新时间结束，隐藏刷新进度条
+                }
             }
         });
     }
@@ -150,9 +167,12 @@ public class WeatherActivity extends AppCompatActivity {
      * 根据天气ID请求城市天气信息
      * */
 
-    public void requestWeather(final  String weatherId){
+    public void requestWeather(String weatherId){
         String weatherUrl = "http://guolin.tech/api/weather?cityid="+ weatherId + "&key=cfb38d666d924f70932e0b0b5ba73f63";
         System.out.println("****************************URl=" + weatherUrl);
+        //使用weatherId成为全局变量，每次更新都是最新
+         this.mWeatherId =weatherId;
+
         HttpUtil.sendOkHttpRequest(weatherUrl, new Callback() {
             @Override
             public void onFailure(Call call, IOException e) {
@@ -199,6 +219,7 @@ public class WeatherActivity extends AppCompatActivity {
     public void showWeatherInfo(Weather weather){
         String cityName = weather.basic.cityName;
         String updateTime = weather.basic.update.updateTime.split(" ")[1];
+        time = updateTime;
         String degree = weather.now.temperature + "℃";
         String weatherInfo = weather.now.more.info;
         Log.d(TAG, "showWeatherInfo: weatherInfo=" + weatherInfo);
@@ -209,7 +230,6 @@ public class WeatherActivity extends AppCompatActivity {
         forecastLayout.removeAllViews();
 
         for(Forecast forecast:weather.forecastList){
-            Log.d(TAG, "showWeatherInfo:Forecast=== "  +"******"+forecast);
             View view = LayoutInflater.from(this).inflate(R.layout.forecast_item,forecastLayout,false);
             TextView dateText = (TextView) view.findViewById(R.id.date_text);
             TextView infoText = (TextView) view.findViewById(R.id.info_text);
@@ -233,8 +253,9 @@ public class WeatherActivity extends AppCompatActivity {
         sportText.setText(sport);
         weatherLayout.setVisibility(View.VISIBLE);
 
-//        Intent intent = new Intent(this,AutoUpdateService.class);
-//        startService(intent);
+        //激活更新服务
+        Intent intent = new Intent(this, AutoUpdateService.class);
+        startService(intent);
 
     }
 

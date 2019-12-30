@@ -10,15 +10,12 @@ import okhttp3.Request;
 public class HttpUtil {
     private static final String TAG = "HttpUtil";
     public static  void sendOkHttpRequest(String address,okhttp3.Callback callback){//传入地址，注册回调来处理服务器响应
-        Log.d(TAG, "sendOkHttpRequest:************************address***** " +address );
         //创建OkHttpClient实例
         OkHttpClient client = new OkHttpClient();
         //创建Request，发起一条http请求
         Request request = new Request.Builder().url(address).build();
-        Log.d(TAG, "sendOkHttpRequest: ******request********" +request);
         //newCall()方法创建一个call对象，
         client.newCall(request).enqueue(callback);
-        Log.d(TAG, "sendOkHttpRequest: **************client.newCall(request).enqueue(callback);******" + client.newCall(request));
 
     }
 
