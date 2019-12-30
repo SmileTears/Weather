@@ -108,7 +108,7 @@ public class ChooseAreaFragment extends Fragment {
         * */
         listView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
             @Override
-            public void onItemClick(AdapterView<?> parent, View view, int position, long id) {//参数1：
+            public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
                 if(currentLevel == LEVEL_PROVINCE){
                     selectedProvince = provinceList.get(position);
                     queryCities();
@@ -116,20 +116,22 @@ public class ChooseAreaFragment extends Fragment {
                     selectedCity = cityList.get(position);
                     queryCounties();
                 }
-//                else if(currentLevel == LEVEL_COUNTY){
-//                    String weatherId = countyList.get(position).getWeatherId();
-//                    if(getActivity() instanceof  MainActivity) {
-//                        Intent intent = new Intent(getActivity(), WeatherActivity.class);
-//                        intent.putExtra("weather_id", weatherId);
-//                        startActivity(intent);
-//                        getActivity().finish();
-//                    }else if(getActivity() instanceof WeatherActivity){
+                //传入解析天气信息
+                else if(currentLevel == LEVEL_COUNTY){
+                    String weatherId = countyList.get(position).getWeatherId();//获取城市对应天气id
+                   // if(getActivity() instanceof  MainActivity) {
+                        Intent intent = new Intent(getActivity(), WeatherActivity.class);
+                        intent.putExtra("weather_id", weatherId);
+                        startActivity(intent);
+                        getActivity().finish();
+                   //}
+//                    else if(getActivity() instanceof WeatherActivity){
 //                        WeatherActivity activity = (WeatherActivity) getActivity();
 //                        activity.drawerLayout.closeDrawers();
 //                        activity.swipeRefreshLayout.setRefreshing(true);
 //                        activity.requestWeather(weatherId);
 //                    }
-//                }
+                }
 
             }
         });
